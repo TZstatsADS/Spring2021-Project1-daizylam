@@ -1,0 +1,312 @@
+---
+title: "The differences between Trump and Biden voters and their view on key issues"
+output: html_document
+pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction
+
+The 2020 election was a tight race between Republican nominee President Donald Trump and Democratic nominee former Vice President Joe Biden. Trump won the 2016 presidential election with a majority of the Electoral College victory over Hillary Clinton but Clinton won the popular vote by nearly three percent. With the current COVID-19 pandemic, the election system has changed to accommodate the difficult circumstances with increasing mail-in ballots, early voting, vitual campaigns, etc. The election was held on November 3 and Joe Biden was elected as the 46th Pkresident of United States desipte Trump's effort to overturn the election with voter fraud claims that has no edvidence to support his allegations. 
+
+The dataset used in the following study is provided by the American National Election Studies(ANES) 2020 Exploratory Testing Survey conducted between April 10, 2020 and April 18, 2020. The dataset included responses from 3,080 adult citizens across the United States with questions regarding changes in the political environment and recent developments in social science research. The following analysis will focus on identifying the differences between Trump and Biden voters and their view in key issues issues to picture what might cause the lead to Trump's lost.
+
+## Exploration Data Analysis
+
+### Survey participants vote distribution
+
+We first want to understand the distribution of the survey participants on who they voted for in the 2020 elections. The distribution shows that 43% of the participants voted for Biden while 40.8% voted for Trump. Looking back into the 2016 election, 37.5% of participants voted for Trump and 35.6% voted for Clinton while 21.3% did not vote. 
+
+```{r vote distribution,echo=FALSE, message=FALSE, warning=FALSE}
+
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+library(data.table)
+library(tidyverse)
+library(haven)
+
+#read the dataset:
+df <- read_sav('/Users/daizylam/Documents/GitHub/Spring2021-Project1-daizylam/data/anes_pilot_2020ets_sav.SAV')
+
+#data selection and cleaning:
+df=df[!(df$vote20jb==9),] #removing missing data on voting answers
+df=df[!(df$vote16==9),]
+df$vote20jb=as.factor(df$vote20jb)
+
+
+pie(table(df$vote20jb),labels=paste(round(prop.table(table(df$vote20jb))*100,1),"%", sep = "", labels=c("Trump","Biden","Else","Not vote")),main="Number of respondents who voted Trump VS Biden 2020 ")
+
+pie(table(df$vote16),labels=paste(round(prop.table(table(df$vote16))*100,1),"%", sep = "", labels=c("Trump","Clinton","Else","Not vote")),main="Number of respondents who voted Trump VS Clinton 2016 ")
+
+```
+
+For the participants who voted for Trump in 2016, 87.9% of them kept their choice and voted for Trump in 2020 while 7.8% changed their vote to Biden. For the participants who voted for Clinton in 2016, 87.5% of them voted for Biden in 2020 while 3.8% changed their vote to Trump. The number of people who did not vote in 2016 drop from 21.3% to 7.7% in 2020. Among those who decided to vote in 2020, 33.1% voted for Biden while 27% voted for Trump.  
+
+```{r vote distribution2,echo=FALSE, message=FALSE, warning=FALSE}
+# Voters for Trump 2016 and election choices in 2020:
+
+df=df%>%
+  mutate(
+    vote16=as_factor(vote16),
+    vote20jb=as_factor(vote20jb),
+    sex=as.factor(df$sex),
+    educ=as.factor(df$educ)
+    )
+
+df%>%
+  select(vote16,vote20jb)%>%
+  group_by(vote16,vote20jb) %>%
+  summarise(n = n()) %>%
+  mutate(prct_total= n/sum(n)*100) %>%
+  ggplot(mapping = aes(x = vote20jb, y= prct_total))+ 
+  scale_y_continuous(expand = c(0,10)) +
+  theme(axis.text.x = element_text(angle=90))+
+  geom_bar(stat = "identity",fill='cadetblue') +   
+  geom_text(aes(x=vote20jb,y=prct_total,label=round(prct_total,1),fill=NULL),
+            nudge_y = 5) +
+  facet_wrap(~vote16,ncol=1)+ 
+  labs(title="2016 voters vote distribution of 2020")+ scale_x_discrete(name ="2020 election choice")
+
+```
+
+### Voters demogphapics
+
+```{r EDA,echo=FALSE, message=FALSE, warning=FALSE}
+
+#demogphapics of Trump VS Biden Supporters:
+
+df = df %>%
+  mutate(trump_voters = ifelse(df$vote20jb==1,"1","0"),
+         biden_voters = ifelse(df$vote20jb==2,"1","0"),
+         sex=as.factor(df$sex),
+         educ=as.factor(df$educ))
+
+#adding new col to identify trump vs biden voters
+df$trump_voters=as.numeric(df$trump_voters)
+df$biden_voters=as.numeric(df$biden_voters)
+df$sex=as.factor(df$sex)
+
+#fuctions for graphing:
+
+getfreq =function(df, col_name){
+    df %>%
+    group_by_(col_name) %>%
+    summarise(X_counts = n(), 
+              Y_counts_trump = sum(trump_voters),
+              Y_counts_biden = sum (biden_voters)) %>%
+    mutate(   trump_voter_by_X_pcnt = Y_counts_trump/X_counts,
+              biden_voter_by_X_pcnt = Y_counts_biden/X_counts,
+              X_pcnt = X_counts/sum(X_counts))
+}
+
+#y_count is the total trump/biden votes for each oberservation
+#x_count is the total count of the same oberservation
+#y/x - percentage of votes in the same oberservation
+#x_pcnt - the distribution of x
+
+graph=function(df,x_var){
+theme_set(theme_bw())    
+
+p1=ggplot(df, aes(x=get(x_var), y=biden_voter_by_X_pcnt,fill=get(x_var))) + 
+      geom_bar(stat="identity", width=0.8) + 
+      labs(title="Frequency barchart of Biden voters",subtitle=x_var,x =x_var,fill= x_var) + 
+              coord_cartesian(ylim=c(0,1))+
+      theme(axis.text.x = element_text(color = "blue", size = 8),
+              legend.title = element_text(color = "blue", size = 8),
+              legend.text = element_text(color = "blue", size = 6),
+              legend.key.size = unit(0.7,"line"))
+
+p2=ggplot(df, aes(x=get(x_var), y=trump_voter_by_X_pcnt,fill=get(x_var))) + 
+      geom_bar(stat="identity", width=0.8) + 
+      labs(title="Frequency barchart of Trump voters",subtitle=x_var,x =x_var,fill= x_var) + 
+              coord_cartesian(ylim=c(0,1))+
+      theme(axis.text.x = element_text(color = "red", size = 8),
+              legend.title = element_text(color = "red", size = 8),
+              legend.text = element_text(color = "red", size = 6),
+              legend.key.size = unit(0.7,"line"))
+
+p3=ggplot(df, aes(x=get(x_var), y=X_pcnt,fill=get(x_var))) + 
+      geom_bar(stat="identity", width=0.8) + 
+      labs(title="Frequency barchart of all obersevation",subtitle=x_var, x =x_var,fill= x_var) + 
+        coord_cartesian(ylim=c(0,1))+
+            theme( axis.text.x = element_text(color = "black", size = 8),
+              legend.title = element_text(color = "black", size = 8),
+              legend.text = element_text(color = "black", size = 6),
+              legend.key.size = unit(0.7,"line"))
+
+require(gridExtra)
+    grid.arrange(p1, p2, p3, nrow=2,heights=c(5,5))
+}
+```
+
+Biden has more female voters while Trump has more male voters. 
+
+```{r sex, echo=FALSE,message=FALSE, warning=FALSE}
+# distribution of demographic variables for Trump VS Biden Voters:
+graph(as.data.frame(getfreq(df,"sex")),"sex")
+```
+
+Biden has more voters with higher education than Bachelor's degree while Trump has more voters with lower education.
+
+<img src="/Users/daizylam/Documents/GitHub/Spring2021-Project1-daizylam/figs/educ.png" width="500">
+
+```{r educ, echo=FALSE,message=FALSE, warning=FALSE}
+# distribution of demographic variables for Trump VS Biden Voters:
+graph(as.data.frame(getfreq(df,"educ")),"educ")
+```
+
+Biden's voters have lower total household income than Trump's voters.
+
+```{r income, echo=FALSE,message=FALSE, warning=FALSE}
+table(df$income)
+df2=df[!(df$income==99),]
+df2$income=as.factor(df2$income)
+# distribution of demographic variables for Trump VS Biden Voters:
+graph(as.data.frame(getfreq(df2,"income")),"income")
+```
+
+Most Biden's voters are Democrat and most Trump's voters are Republican but there is a higher percentage of Democrat voters voted for Trump than Republican voted for Biden. More independent voters voted for Biden than Trump.
+
+<img src="/Users/daizylam/Documents/GitHub/Spring2021-Project1-daizylam/figs/party.png" width="500">
+
+```{r pid1r, echo=FALSE,message=FALSE, warning=FALSE}
+# distribution of demographic variables for Trump VS Biden Voters:
+df2=df[!(df$pid1r==9),]
+df2$pid1r=as.factor(df2$pid1r)
+graph(as.data.frame(getfreq(df2,"pid1r")),"pid1r")
+```
+
+## Voters view on election accuracy and mail-in ballots 
+
+Overall, most voters believed that the 2020 election is accurate with higher percentage of Trump voters thinking the election results is completely accurate. However, the two group of voters have very different view on the accuracy of mail-in ballots. Biden's voter tend to support mail in ballots and strongly trusting the accuracy of voting by mail while Trump's vote tend to not support the mail in ballots and not at all believe in the accuracy of voting by mail. The strong disbelieve in mail in ballots has led Trump's vote to post election protest and supporting Trump's claim that the election was fraudulent.
+
+<img src="/Users/daizylam/Documents/GitHub/Spring2021-Project1-daizylam/figs/voter_labels.png" width="500">
+
+```{r votecount, echo=FALSE,message=FALSE, warning=FALSE}
+# distribution of variables for Trump VS Biden Voters:
+df2=df[!(df$votecount==9),]
+df2$votecount=as.factor(df2$votecount)
+graph(as.data.frame(getfreq(df2,"votecount")),"votecount")
+```
+
+<img src="/Users/daizylam/Documents/GitHub/Spring2021-Project1-daizylam/figs/votemail.png" width="500">
+
+```{r votemail, echo=FALSE,message=FALSE, warning=FALSE}
+# distribution of variables for Trump VS Biden Voters:
+df2=df[!(df$votemail2==9),]
+df2$votemail2=as.factor(df2$votemail2)
+graph(as.data.frame(getfreq(df2,"votemail2")),"votemail2")
+```
+
+## Voter view on Trump's policies:
+
+The two groups of voters have extreme views on the way Trump handles his job as president with Biden's voters mostly disapprove strongly while Trump's voters approved strongly. The vote responses on relations with foreign countries, immigration policies, economic policies, COVID response and health care policies all follow the same trend with extreme views from the two group of voters. However, there are more Biden's voters who approval Trump's economic policies over other issues.
+
+<img src="/Users/daizylam/Documents/GitHub/Spring2021-Project1-daizylam/figs/trump_job_approval.png" width="300">
+
+```{r approval, echo=FALSE,message=FALSE, warning=FALSE}
+# distribution of variables for Trump VS Biden Voters:
+df2=df[!(df$apppres7==99),]
+df2$apppres7=as.factor(df2$apppres7)
+print("Overall Trump's job approval")
+graph(as.data.frame(getfreq(df2,"apppres7")),"apppres7")
+```
+
+```{r foreign, echo=FALSE,message=FALSE, warning=FALSE}
+# distribution of variables for Trump VS Biden Voters:
+df2=df[!(df$frnpres7==99),]
+df2$frnpres7=as.factor(df2$frnpres7)
+print("Approval on Trump's relations with foreign countries")
+graph(as.data.frame(getfreq(df2,"frnpres7")),"frnpres7")
+```
+
+```{r imm, echo=FALSE,message=FALSE, warning=FALSE}
+# distribution of variables for Trump VS Biden Voters:
+
+df2=df[!(df$immpres7==99),]
+df2$immpres7=as.factor(df2$immpres7)
+print("Approval on Trump's immigration policies")
+graph(as.data.frame(getfreq(df2,"immpres7")),"immpres7")
+```
+
+```{r econpres7, echo=FALSE,message=FALSE, warning=FALSE}
+# distribution of variables for Trump VS Biden Voters:
+
+df2=df[!(df$econpres7==99),]
+df2$econpres7=as.factor(df2$econpres7)
+print("Approval on Trump's economic policies")
+graph(as.data.frame(getfreq(df2,"econpres7")),"econpres7")
+```
+
+```{r covidpres7, echo=FALSE,message=FALSE, warning=FALSE}
+# distribution of variables for Trump VS Biden Voters:
+
+df2=df[!(df$covidpres7==88),]
+df2$covidpres7=as.factor(df2$covidpres7)
+print("Approval on Trump's COVID response")
+graph(as.data.frame(getfreq(df2,"covidpres7")),"covidpres7")
+```
+
+```{r healthcarepres7, echo=FALSE,message=FALSE, warning=FALSE}
+# distribution of variables for Trump VS Biden Voters:
+
+df2=df[!(df$healthcarepres7==77 | df$healthcarepres7==99 ),]
+df2$healthcarepres7=as.factor(df2$healthcarepres7)
+print("Approval on Trump's health care policies")
+graph(as.data.frame(getfreq(df2,"healthcarepres7")),"healthcarepres7")
+```
+
+## Voter view on key issues:
+
+### COVID-19:
+
+Overall, voters are somewhat worried about getting COVID but extremely worried about the upcoming economic impact. Most Trump's voters were not worried about catching COVID-19 but were moderately concern about the economic impact of the coronavirus while most Biden's voters were worried about getting COVID and extremely worried about the economic impact.
+
+<img src="/Users/daizylam/Documents/GitHub/Spring2021-Project1-daizylam/figs/covid_issues.png" width="500">
+
+```{r covid, echo=FALSE,message=FALSE, warning=FALSE}
+df2=df[!(df$covid1==9),]
+df2$covid1=as.factor(df2$covid1)
+# distribution of demographic variables for Trump VS Biden Voters:
+graph(as.data.frame(getfreq(df2,"covid1")),"covid1")
+```
+
+```{r covid2, echo=FALSE,message=FALSE, warning=FALSE}
+df2=df[!(df$covid2==9),]
+df2$covid2=as.factor(df2$covid2)
+# distribution of demographic variables for Trump VS Biden Voters:
+graph(as.data.frame(getfreq(df2,"covid2")),"covid2")
+```
+
+
+### Abortion:
+Trump's voters are against abortion and sugguest that abortion right should be tighten with laws while Biden's voters mostly believe that woman should always have abortion right and some support tightening abortion laws.
+
+<img src="/Users/daizylam/Documents/GitHub/Spring2021-Project1-daizylam/figs/abortion.png" width="500">
+
+```{r abort1, echo=FALSE,message=FALSE, warning=FALSE}
+df2=df[!(df$abort1==9),]
+df2$abort1=as.factor(df2$abort1)
+# distribution of demographic variables for Trump VS Biden Voters:
+graph(as.data.frame(getfreq(df2,"abort1")),"abort1")
+```
+
+### MeToo Movement:
+Trump's voters believes that attention to sexual harassment from the #MeToo movement has gone too far while Biden's voters thinks it's not gone far enough. Overall, most voters thinks it's has been about right.
+
+<img src="/Users/daizylam/Documents/GitHub/Spring2021-Project1-daizylam/figs/harass.png" width="500">
+
+```{r harass, echo=FALSE,message=FALSE, warning=FALSE}
+
+df2=df[!(df$harass==8|df$harass==9),]
+df2$harass=as.factor(df2$harass)
+# distribution of demographic variables for Trump VS Biden Voters:
+graph(as.data.frame(getfreq(df2,"harass")),"harass")
+```
+
+## Conclusion:
+

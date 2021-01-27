@@ -41,11 +41,12 @@ From the packages' descriptions:
 + `ggplot2` a collection of functions for creating graphics, based on The Grammar of Graphics.
 
 ```{r load libraries, warning=FALSE, message=FALSE, include=FALSE}
+
 packages.used=as.list(
   c(
   "tidyverse",
   "haven",
-  "devtools",
+  #"devtools",
   "RColorBrewer",
   "data.table",
   "ggplot2")
