@@ -3,3 +3,6 @@
 ### Doc folder
 
 The doc directory contains the report or presentation files. It can have subfolders.  
+
+project1_EDA.html - the knit html for persentation
+project1_EDA.Rmd - the R markdown to reproduce this project

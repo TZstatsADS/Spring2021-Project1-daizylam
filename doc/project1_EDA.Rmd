@@ -297,7 +297,7 @@ graph(as.data.frame(getfreq(df2,"abort1")),"abort1")
 ```
 
 ### MeToo Movement:
-Trump's voters believes that attention to sexual harassment from the #MeToo movement has gone too far while Biden's voters thinks it's not gone far enough. Overall, most voters thinks it's has been about right.
+Trump's voters believes that attention to sexual harassment from the #MeToo movement has gone too far while Biden's voters thinks it's not gone far enough. Overall, most voters thinks it's has been about right. Biden’s voter are more liberal as most of them are Democrat supporting Abortion rights and MeToo movement while Trump voters are more convervation and have opposite stands.
 
 <img src="/Users/daizylam/Documents/GitHub/Spring2021-Project1-daizylam/figs/harass.png" width="500">
 
@@ -317,4 +317,4 @@ The two groups of voters have different views on the accuracy of voting by mail 
  
 All voters are somewhat worried about getting COVID. Most Trump's voters are not extremely worried about the economic impact as they tend to have higher HH incomes while  Biden's voters are more concerned. 
  
-Finally, the view points on key issue follows similar trends as Biden’s voter are more liberal as most of them are Democrat supporting Abortion rights and MeToo movement while Trump voters are more convervation and have opposite stands. Also, there are more female BIden supporters which might also increase their support for these issues.
+Finally, the view points on key issue follows similar trends as Biden’s voter are more liberal as most of them are Democrat supporting Abortion rights and MeToo movement while Trump voters are more convervation and have opposite stands. Also, there are more female Biden supporters which might also increase their support for these issues.
