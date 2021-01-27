@@ -12,7 +12,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 The 2020 election was a tight race between Republican nominee President Donald Trump and Democratic nominee former Vice President Joe Biden. Trump won the 2016 presidential election with a majority of the Electoral College victory over Hillary Clinton but Clinton won the popular vote by nearly three percent. With the current COVID-19 pandemic, the election system has changed to accommodate the difficult circumstances with increasing mail-in ballots, early voting, vitual campaigns, etc. The election was held on November 3 and Joe Biden was elected as the 46th Pkresident of United States desipte Trump's effort to overturn the election with voter fraud claims that has no edvidence to support his allegations. 
 
-The dataset used in the following study is provided by the American National Election Studies(ANES) 2020 Exploratory Testing Survey conducted between April 10, 2020 and April 18, 2020. The dataset included responses from 3,080 adult citizens across the United States with questions regarding changes in the political environment and recent developments in social science research. The following analysis will focus on identifying the differences between Trump and Biden voters and their view in key issues issues to picture what might cause the lead to Trump's lost.
+The dataset used in the following study is provided by the American National Election Studies(ANES) 2020 Exploratory Testing Survey conducted between April 10, 2020 and April 18, 2020. The dataset included responses from 3,080 adult citizens across the United States with 470 variable of questions regarding changes in the political environment and recent developments in social science research. The following analysis will focus on identifying the differences between Trump and Biden voters and their view on key issues to better picture what might cause Trump's loss.
 
 ## Exploration Data Analysis
 
@@ -73,7 +73,7 @@ df%>%
 
 ```
 
-### Voters demogphapics
+### Demographics
 
 ```{r EDA,echo=FALSE, message=FALSE, warning=FALSE}
 
@@ -105,7 +105,7 @@ getfreq =function(df, col_name){
 
 #y_count is the total trump/biden votes for each oberservation
 #x_count is the total count of the same oberservation
-#y/x - percentage of votes in the same oberservation
+#y/x - percentage of voters in the same oberservation
 #x_pcnt - the distribution of x
 
 graph=function(df,x_var){
@@ -162,7 +162,7 @@ graph(as.data.frame(getfreq(df,"educ")),"educ")
 Biden's voters have lower total household income than Trump's voters.
 
 ```{r income, echo=FALSE,message=FALSE, warning=FALSE}
-table(df$income)
+
 df2=df[!(df$income==99),]
 df2$income=as.factor(df2$income)
 # distribution of demographic variables for Trump VS Biden Voters:
@@ -180,7 +180,7 @@ df2$pid1r=as.factor(df2$pid1r)
 graph(as.data.frame(getfreq(df2,"pid1r")),"pid1r")
 ```
 
-## Voters view on election accuracy and mail-in ballots 
+## Views on election accuracy and mail-in ballots 
 
 Overall, most voters believed that the 2020 election is accurate with higher percentage of Trump voters thinking the election results is completely accurate. However, the two group of voters have very different view on the accuracy of mail-in ballots. Biden's voter tend to support mail in ballots and strongly trusting the accuracy of voting by mail while Trump's vote tend to not support the mail in ballots and not at all believe in the accuracy of voting by mail. The strong disbelieve in mail in ballots has led Trump's vote to post election protest and supporting Trump's claim that the election was fraudulent.
 
@@ -202,7 +202,7 @@ df2$votemail2=as.factor(df2$votemail2)
 graph(as.data.frame(getfreq(df2,"votemail2")),"votemail2")
 ```
 
-## Voter view on Trump's policies:
+## Views on Trump's policies:
 
 The two groups of voters have extreme views on the way Trump handles his job as president with Biden's voters mostly disapprove strongly while Trump's voters approved strongly. The vote responses on relations with foreign countries, immigration policies, economic policies, COVID response and health care policies all follow the same trend with extreme views from the two group of voters. However, there are more Biden's voters who approval Trump's economic policies over other issues.
 
@@ -284,6 +284,7 @@ graph(as.data.frame(getfreq(df2,"covid2")),"covid2")
 
 
 ### Abortion:
+
 Trump's voters are against abortion and sugguest that abortion right should be tighten with laws while Biden's voters mostly believe that woman should always have abortion right and some support tightening abortion laws.
 
 <img src="/Users/daizylam/Documents/GitHub/Spring2021-Project1-daizylam/figs/abortion.png" width="500">
@@ -310,3 +311,10 @@ graph(as.data.frame(getfreq(df2,"harass")),"harass")
 
 ## Conclusion:
 
+In conclusion, Biden has more female voters while Trump has more male voters, Biden has more voters with higher education than Trump but their overall total household is lower than Trump's voters. Most Biden's voters are Democrat and most Trump's voters are Republican but there is a higher percentage of Democrat voters who voted for Trump than Republican voted for Biden. 
+
+The two groups of voters have different views on the accuracy of voting by mail as Trump's voters strongly disbelieve in the accuracy of voting by mail. They also have extreme views on the way Trump handles his job as president as you can see the graphs are following the same trends with Biden's voters mostly disapprove of all Trump's policies while Trump's voters approve them strongly. However, there are more Biden's voters who approval Trump's economic policies over other issues.
+ 
+All voters are somewhat worried about getting COVID. Most Trump's voters are not extremely worried about the economic impact as they tend to have higher HH incomes while  Biden's voters are more concerned. 
+ 
+Finally, the view points on key issue follows similar trends as Biden’s voter are more liberal as most of them are Democrat supporting Abortion rights and MeToo movement while Trump voters are more convervation and have opposite stands. Also, there are more female BIden supporters which might also increase their support for these issues.
